@@ -6,6 +6,34 @@ class LunarLanderModified(LunarLander):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def _reset_env(self, seed=None):
+        # Chama o método original para criar o mundo, o lander, etc.
+        super()._reset_env(seed=seed)
+
+        # Defina uma nova largura do helipad menor que o original para aproximar as bandeiras.
+        # O valor original de PAD_WIDTH no LunarLander é algo em torno de 14.0.
+        # Vamos reduzir, por exemplo, para 8.0.
+        new_pad_width = 8.0
+        self.helipad_x1 = self.helipad_x - new_pad_width / 2
+        self.helipad_x2 = self.helipad_x + new_pad_width / 2
+
+        # Remover as bandeiras criadas pela classe pai, pois elas foram colocadas com o PAD_WIDTH original.
+        for flag in self.flags:
+            self.world.DestroyBody(flag)
+        self.flags = []
+
+        # Recriar as bandeiras nas novas posições mais próximas
+        for x in [self.helipad_x1, self.helipad_x2]:
+            flag = self.world.CreateStaticBody(
+                fixtures=fixtureDef(
+                    shape=polygonShape(box=(0.5, 1.0)),
+                    density=0.0,
+                    friction=0.1,
+                ),
+                position=(x, self.helipad_y)
+            )
+            self.flags.append(flag)
+
     def step(self, action):
         # Perform the action in the environment
         state, reward, terminated, truncated, info = super().step(action)
@@ -29,11 +57,11 @@ class LunarLanderModified(LunarLander):
 
         # Reward for leg contact (partial landing)
         if left_leg_contact or right_leg_contact:
-            reward += 10.0
+            reward += 50.0
 
         # Additional reward for successful landing
         if terminated and (left_leg_contact and right_leg_contact):
-            reward += 100.0
+            reward += 200.0
 
         return state, reward, terminated, truncated, info
 
