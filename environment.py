@@ -57,11 +57,11 @@ class LunarLanderModified(LunarLander):
 
         # Reward for leg contact (partial landing)
         if left_leg_contact or right_leg_contact:
-            reward += 50.0
+            reward += 10.0
 
         # Additional reward for successful landing
         if terminated and (left_leg_contact and right_leg_contact):
-            reward += 200.0
+            reward += 100.0
 
         return state, reward, terminated, truncated, info
 
