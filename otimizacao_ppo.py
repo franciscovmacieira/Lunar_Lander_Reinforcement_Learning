@@ -1,5 +1,27 @@
 import optuna
+from environment import LunarLanderModified
+import gymnasium as gym
+import numpy as np
+from stable_baselines3 import PPO
+from stable_baselines3.common.monitor import Monitor
+import os
+import pandas as pd
 
+# Diretórios para logs e modelos
+logdir = "logs"
+models_dir = "models"
+
+# run tensorboard with:
+# tensorboard --logdir=logs
+
+if not os.path.exists(models_dir):
+    os.makedirs(models_dir)
+    print(f"Created models directory: {models_dir}")
+
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
+    print(f"Created logs directory: {logdir}")
+    
 # Função objetivo para otimização
 def objective(trial):
      # Sugestões de valores para hiperparâmetros
