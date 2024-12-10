@@ -13,7 +13,7 @@ class LunarLanderModified(LunarLander):
         # Defina uma nova largura do helipad menor que o original para aproximar as bandeiras.
         # O valor original de PAD_WIDTH no LunarLander é algo em torno de 14.0.
         # Vamos reduzir, por exemplo, para 8.0.
-        new_pad_width = 8.0
+        new_pad_width = 11.0
         self.helipad_x1 = self.helipad_x - new_pad_width / 2
         self.helipad_x2 = self.helipad_x + new_pad_width / 2
 
@@ -47,21 +47,21 @@ class LunarLanderModified(LunarLander):
         # Modify the reward function
 
         # Penalize for moving away from the center
-        reward -= abs(pos_x)
+        reward -= (abs(pos_x))/4
 
         # Penalize for high velocities
-        reward -= (abs(vel_x) + abs(vel_y))
+        reward -= ((abs(vel_x) + abs(vel_y)))/4
 
         # Penalize for large angles and angular velocity
-        reward -= (abs(angle) + abs(angular_vel))
+        reward -= ((abs(angle) + abs(angular_vel)))/4
 
         # Reward for leg contact (partial landing)
         if left_leg_contact or right_leg_contact:
-            reward += 10.0
+            reward += 30.0
 
         # Additional reward for successful landing
         if terminated and (left_leg_contact and right_leg_contact):
-            reward += 100.0
+            reward += 300.0
 
         return state, reward, terminated, truncated, info
 
