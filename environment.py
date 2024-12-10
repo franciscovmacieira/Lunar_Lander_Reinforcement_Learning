@@ -47,13 +47,13 @@ class LunarLanderModified(LunarLander):
         # Modify the reward function
 
         # Penalize for moving away from the center
-        reward -= (abs(pos_x))/4
+        reward -= (abs(pos_x))/2
 
         # Penalize for high velocities
-        reward -= ((abs(vel_x) + abs(vel_y)))/4
+        reward -= ((abs(vel_x) + abs(vel_y)))/6
 
         # Penalize for large angles and angular velocity
-        reward -= ((abs(angle) + abs(angular_vel)))/4
+        reward -= ((abs(angle) + abs(angular_vel)))/2
 
         # Reward for leg contact (partial landing)
         if left_leg_contact or right_leg_contact:
