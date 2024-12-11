@@ -56,7 +56,7 @@ class LunarLanderModified(LunarLander):
 
         # Penalize for high velocities
         if (left_leg_contact or right_leg_contact):
-            reward -= ((abs(vel_x) + abs(vel_y)))/6
+            reward -= (abs(vel_x) + abs(vel_y))
 
         # Penalize for large angles and angular velocity
         if (left_leg_contact or right_leg_contact):
@@ -72,7 +72,7 @@ class LunarLanderModified(LunarLander):
 
         if (left_leg_contact or right_leg_contact) and self.step_count > 70:
             reward += self.step_count*5
-            
+
         if (left_leg_contact or right_leg_contact) and self.step_count < 60:
             reward -= self.step_count*2
 
