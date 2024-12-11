@@ -1,3 +1,4 @@
+
 import gymnasium as gym
 from gymnasium.envs.box2d.lunar_lander import LunarLander
 import numpy as np
@@ -51,7 +52,7 @@ class LunarLanderModified(LunarLander):
 
         # Penalize for moving away from the center
         if (left_leg_contact or right_leg_contact):
-            reward -= ((abs(pos_x))*2)/3
+            reward -= (abs(pos_x))/2
 
         # Penalize for high velocities
         if (left_leg_contact or right_leg_contact):
@@ -67,13 +68,12 @@ class LunarLanderModified(LunarLander):
 
         # Additional reward for successful landing
         if terminated and (left_leg_contact and right_leg_contact):
-            reward += 650.0
+            reward += 800.0
 
         if (left_leg_contact or right_leg_contact) and self.step_count > 70:
             reward += self.step_count*5
-
+            
         if (left_leg_contact or right_leg_contact) and self.step_count < 60:
             reward -= self.step_count*2
 
         return state, reward, terminated, truncated, info
-
