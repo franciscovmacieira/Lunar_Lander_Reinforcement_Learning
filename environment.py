@@ -5,9 +5,11 @@ import numpy as np
 class LunarLanderModified(LunarLander):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.step_count = 0
 
     def _reset_env(self, seed=None):
         # Chama o método original para criar o mundo, o lander, etc.
+        self.step_count = 0
         super()._reset_env(seed=seed)
 
         # Defina uma nova largura do helipad menor que o original para aproximar as bandeiras.
@@ -37,6 +39,7 @@ class LunarLanderModified(LunarLander):
     def step(self, action):
         # Perform the action in the environment
         state, reward, terminated, truncated, info = super().step(action)
+        self.step_count += 1
 
         # Extract state variables
         pos_x, pos_y = state[0], state[1]        # Position
@@ -47,21 +50,30 @@ class LunarLanderModified(LunarLander):
         # Modify the reward function
 
         # Penalize for moving away from the center
-        reward -= (abs(pos_x))/2
+        if (left_leg_contact or right_leg_contact):
+            reward -= (abs(pos_x))/2
 
         # Penalize for high velocities
-        reward -= ((abs(vel_x) + abs(vel_y)))/6
+        if (left_leg_contact or right_leg_contact):
+            reward -= ((abs(vel_x) + abs(vel_y)))/6
 
         # Penalize for large angles and angular velocity
-        reward -= ((abs(angle) + abs(angular_vel)))/2
+        if (left_leg_contact or right_leg_contact):
+            reward -= ((abs(angle) + abs(angular_vel)))/6
 
         # Reward for leg contact (partial landing)
         if left_leg_contact or right_leg_contact:
-            reward += 30.0
+            reward += 300.0
 
         # Additional reward for successful landing
         if terminated and (left_leg_contact and right_leg_contact):
-            reward += 300.0
+            reward += 800.0
+
+        if (left_leg_contact or right_leg_contact) and self.step_count > 70:
+            reward += self.step_count*5
+
+        if (left_leg_contact or right_leg_contact) and self.step_count < 60:
+            reward -= self.step_count*2
 
         return state, reward, terminated, truncated, info
 
