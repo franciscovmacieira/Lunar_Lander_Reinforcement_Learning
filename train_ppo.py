@@ -58,7 +58,7 @@ model = PPO(
 
 # Loop de treinamento com registro das recompensas médias por iteração
 iters = 0
-n_ite = 200 #Alterar para 300, 100 só para experimentar diferentes ambientes
+n_ite = 5
 
 while iters < n_ite:
     iters += 1
