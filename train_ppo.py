@@ -35,10 +35,7 @@ best_params = {
 }
 
 # Criar o ambiente com RecordEpisodeStatistics e TimeLimit
-env = make_vec_env(
-    lambda: RecordEpisodeStatistics(TimeLimit(LunarLanderModified(), max_episode_steps=1000)),
-    n_envs=1
-)
+env = make_vec_env(lambda: RecordEpisodeStatistics(TimeLimit(LunarLanderModified(), max_episode_steps=1000)), n_envs=1)
 
 # Configurar o TensorBoard
 writer = SummaryWriter(logdir)
@@ -61,7 +58,7 @@ model = PPO(
 
 # Loop de treinamento com registro das recompensas médias por iteração
 iters = 0
-n_ite = 100 #Alterar para 300, 100 só para experimentar diferentes ambientes
+n_ite = 200 #Alterar para 300, 100 só para experimentar diferentes ambientes
 
 while iters < n_ite:
     iters += 1

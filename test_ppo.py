@@ -1,5 +1,5 @@
 import gymnasium as gym
-from gymnasium.wrappers import RecordEpisodeStatistics, TimeLimit
+from gymnasium.wrappers import RecordEpisodeStatistics, TimeLimit, RecordVideo
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
@@ -24,13 +24,23 @@ best_params = {
     "total_timesteps": int(best_trial["params_total_timesteps"]),
 }
 
-# Avaliar o modelo treinado em novos episódios
-env = gym.make("LunarLander-v3", render_mode = "human")
+# Ambiente com modo de renderização "rgb_array"
+env = gym.make("LunarLander-v3", render_mode="rgb_array")
+
+# Envolve o ambiente no RecordVideo para gravar todos os episódios
+env = RecordVideo(
+    env,
+    video_folder="video_ppo",
+    episode_trigger=lambda episode_id: True,
+    name_prefix="video_ppo"
+)
+
+# Monitor para registro de métricas
 env = Monitor(env, filename=os.path.join(logdir, "monitor.csv"))
 
-model = PPO.load(f"{models_dir}/{best_params['total_timesteps'] * 200}")
+model = PPO.load(f"{models_dir}/{best_params['total_timesteps'] * 4}")
 
-num_episodes = 10
+num_episodes = 5
 for episode in range(num_episodes):
     obs, info = env.reset()
     done = False
@@ -41,3 +51,5 @@ for episode in range(num_episodes):
         total_reward += reward
         done = terminated or truncated
     print(f"Episódio {episode+1}: Recompensa Total = {total_reward}")
+
+env.close()

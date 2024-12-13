@@ -11,6 +11,7 @@ class LunarLanderModified(LunarLander):
     def _reset_env(self, seed=None):
         # Chama o método original para criar o mundo, o lander, etc.
         self.step_count = 0
+        self.added_reward = 0
         super()._reset_env(seed=seed)
 
         # Defina uma nova largura do helipad menor que o original para aproximar as bandeiras.
@@ -48,32 +49,23 @@ class LunarLanderModified(LunarLander):
         angle, angular_vel = state[4], state[5]  # Angle and angular velocity
         left_leg_contact, right_leg_contact = state[6], state[7]  # Leg contact
 
-        # Modify the reward function
 
-        # Penalize for moving away from the center
+        if abs(angle) < 0.4 and angular_vel <= -0.1 and angular_vel >= -0.15:
+            reward += 1
+
+        if vel_x <= -0.05 and vel_x >= -0.08 and vel_y <= -0.05 and vel_y >= -0.08:
+            reward += 3/4
+
+        if abs(pos_x) < 0.4:
+            reward += 0.5
+
         if (left_leg_contact or right_leg_contact):
-            reward -= (abs(pos_x))/2
+            reward += 1
 
-        # Penalize for high velocities
-        if (left_leg_contact or right_leg_contact):
-            reward -= (abs(vel_x) + abs(vel_y))
+        if (left_leg_contact and right_leg_contact) and abs(pos_x) <=  0.4 and abs(angle) < 0.4 and angular_vel <= -0.1 and angular_vel >= -0.15 and vel_x == 0 and vel_y == 0:
+            reward += 10
 
-        # Penalize for large angles and angular velocity
-        if (left_leg_contact or right_leg_contact):
-            reward -= ((abs(angle) + abs(angular_vel)))/6
-
-        # Reward for leg contact (partial landing)
-        if left_leg_contact or right_leg_contact:
-            reward += 300.0
-
-        # Additional reward for successful landing
-        if terminated and (left_leg_contact and right_leg_contact):
-            reward += 800.0
-
-        if (left_leg_contact or right_leg_contact) and self.step_count > 70:
-            reward += self.step_count*5
-
-        if (left_leg_contact or right_leg_contact) and self.step_count < 60:
-            reward -= self.step_count*2
+        if terminated and not (left_leg_contact and right_leg_contact):
+            reward -= 100
 
         return state, reward, terminated, truncated, info
