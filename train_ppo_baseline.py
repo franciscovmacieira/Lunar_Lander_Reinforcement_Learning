@@ -7,7 +7,7 @@ import os
 import pandas as pd
 from environment import LunarLanderModified
 
-# Diretórios para logs e modelos
+# Definir os diretórios
 logdir = "logs_baseline"
 models_dir = "models_baseline"
 
@@ -20,31 +20,32 @@ if not os.path.exists(models_dir):
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 
-
-# Criar o ambiente com RecordEpisodeStatistics e TimeLimit
+# Carregar o ambiente original do gymnasium
 env = gym.make("LunarLander-v3", render_mode="rgb_array")
 
 # Configurar o TensorBoard
 writer = SummaryWriter(logdir)
 
+# Inicializar o modelo PPO sem especificar hiperparâmetros
 model = PPO(
     "MlpPolicy",
     env,
     verbose=1,
     tensorboard_log=logdir,)
 
-# Loop de treinamento com registro das recompensas médias por iteração
+# Definir o número de iterações como 5 (~ 500 000 episódios)
 iters = 0
 n_ite = 5
 
 while iters < n_ite:
     iters += 1
+    # Treinar o modelo
     model.learn(total_timesteps = 10000, reset_num_timesteps=False, tb_log_name="PPO_baseline")
 
-    # Salvar o modelo
+    # Guardar o modelo
     model.save(f"{models_dir}/{iters}")
 
-    # Calcular recompensas médias manualmente
+    # Calcular recompensas médias para o modelo criado em cada iteração ao longo de 10 episódios
     rewards = []
     for _ in range(10):  # Coletar recompensas para 10 episódios
         obs, info = env.reset()

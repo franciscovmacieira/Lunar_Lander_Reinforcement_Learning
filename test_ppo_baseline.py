@@ -7,13 +7,14 @@ from torch.utils.tensorboard import SummaryWriter
 import os
 import pandas as pd
 
+# Definir os diretórios
 logdir = "logs_baseline"
 models_dir = "models_baseline"
 
-# Ambiente com modo de renderização "rgb_array"
+# Carregar o ambiente original do gymnasium
 env = gym.make("LunarLander-v3", render_mode="rgb_array")
 
-# Envolve o ambiente no RecordVideo para gravar todos os episódios
+# Preparar o ambiente para ser capaz de registar cada episódio em vídeo
 env = RecordVideo(
     env,
     video_folder="videos_ppo_baseline",
@@ -21,11 +22,13 @@ env = RecordVideo(
     name_prefix="video_ppo"
 )
 
-# Monitor para registro de métricas
+# Monitor para o registo das métricas
 env = Monitor(env, filename=os.path.join(logdir, "monitor.csv"))
 
+# Carregar o modelo treinado após as 5 iterações
 model = PPO.load(f"{models_dir}/5")
 
+# Testar o modelo ao longo de 5 episódios e imprimir as recompensas
 num_episodes = 5
 for episode in range(num_episodes):
     obs, info = env.reset()

@@ -9,13 +9,11 @@ import os
 from gymnasium.wrappers import TimeLimit
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-# Diretórios para logs e modelos
+# Definir os diretórios
 logdir = "logs"
 models_dir = "models"
 
-# run tensorboard with:
-# tensorboard --logdir=logs
-
+# Criar diretórios se não existirem
 if not os.path.exists(models_dir):
     os.makedirs(models_dir)
     print(f"Created models directory: {models_dir}")
@@ -23,10 +21,11 @@ if not os.path.exists(models_dir):
 if not os.path.exists(logdir):
     os.makedirs(logdir)
     print(f"Created logs directory: {logdir}")
-    
-# Função objetivo para otimização
+
+
+# Função objetivo para a otimização bayseana
 def objective(trial):
-     # Sugestões de valores para hiperparâmetros
+     # Intervalos de valores para cada hiperparâmetro que queremos otimizar
      learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True)
      gamma = trial.suggest_float("gamma", 0.9, 0.999)
      n_steps = trial.suggest_int("n_steps", 64, 512, log=True)
@@ -36,11 +35,11 @@ def objective(trial):
      max_grad_norm = trial.suggest_float("max_grad_norm", 0.5, 1.0)
      total_timesteps = trial.suggest_int("total_timesteps", 10_000, 100_000, log=True)
 
-     # Instanciar e envolver o ambiente
+     # Criar o ambiente (modificado)
      env = TimeLimit(LunarLanderModified(), max_episode_steps=100000)
      env = Monitor(env, filename=os.path.join(logdir, "monitor.csv"))
 
-     # Instanciar o modelo PPO
+     # Inicializar o modelo PPO
      model = PPO(
          "MlpPolicy",
          env,
@@ -58,7 +57,7 @@ def objective(trial):
      # Treinar o modelo
      model.learn(total_timesteps=total_timesteps)
 
-     # Avaliar o modelo
+     # Avaliar o modelo ao longo de 10 episódios
      rewards = []
      for _ in range(10):
          obs, _ = env.reset()
@@ -71,15 +70,13 @@ def objective(trial):
          total_reward += reward
          rewards.append(total_reward)
 
-     # Retorna a média das recompensas
+     # Retornar a média das recompensas ao longo dos 10 episódios
      return sum(rewards) / len(rewards)
 
-# Configurar o estudoclear
+# Configurar a otimização, para 500 tentativas
 study = optuna.create_study(direction="maximize")
 study.optimize(objective, n_trials=500, n_jobs=1, timeout=3600)
 
-# Exibir os melhores hiperparâmetros
+# Imprimir os melhores parâmetros encontrados e guardá-los num ficheiro csv
 print("Best hyperparameters:", study.best_params)
-
-#Salvar os resultados
 study.trials_dataframe().to_csv("ppo_optimized.csv")

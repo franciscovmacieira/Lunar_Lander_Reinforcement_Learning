@@ -6,7 +6,7 @@ import os
 import pandas as pd
 from environment import LunarLanderModified
 
-# Diretórios para logs e modelos
+# Definir os diretórios
 logdir = "logs"
 models_dir = "models"
 csv_file = "ppo_optimized.csv"
@@ -20,7 +20,7 @@ if not os.path.exists(models_dir):
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 
-# Carregar os melhores parâmetros do CSV
+# Carregar os melhores parâmetros da otimização
 df = pd.read_csv(csv_file)
 best_trial = df.loc[df["value"].idxmax()]
 best_params = {
@@ -34,13 +34,13 @@ best_params = {
     "total_timesteps": int(best_trial["params_total_timesteps"]),
 }
 
-# Criar o ambiente com RecordEpisodeStatistics e TimeLimit
+# Criar o ambiente com um número máximo de 1000 ações para evitar ciclos infinitos
 env = make_vec_env(lambda: RecordEpisodeStatistics(TimeLimit(LunarLanderModified(), max_episode_steps=1000)), n_envs=1)
 
 # Configurar o TensorBoard
 writer = SummaryWriter(logdir)
 
-# Instanciar o modelo PPO com os melhores parâmetros
+# Inicializar o modelo PPO com os hiperparâmetros obtidos na otimização
 model = PPO(
     "MlpPolicy",
     env,
@@ -56,21 +56,21 @@ model = PPO(
     tensorboard_log=logdir,
 )
 
-# Loop de treinamento com registro das recompensas médias por iteração
+# Definir o número de iterações como 5 (~ 500 000 episódios)
 iters = 0
 n_ite = 5
 
 while iters < n_ite:
     iters += 1
-    # Treinar o modelo por 'total_timesteps'
+    # Treinar o modelo
     model.learn(total_timesteps=best_params["total_timesteps"], reset_num_timesteps=False, tb_log_name="PPO_optimized")
 
-    # Salvar o modelo
+    # Guardar o modelo
     model.save(f"{models_dir}/{best_params['total_timesteps'] * iters}")
 
-    # Calcular recompensas médias manualmente
+    # Calcular recompensas médias para o modelo criado em cada iteração ao longo de 10 episódios
     rewards = []
-    for _ in range(10):  # Coletar recompensas para 10 episódios
+    for _ in range(10):
         obs = env.reset()
         done = False
         total_reward = 0
